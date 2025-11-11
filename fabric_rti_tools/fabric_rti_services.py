@@ -67,3 +67,51 @@ def fabric_rti_run_query_and_count_records(query: str, query_language: str = Non
     record_count = len(data) if data and isinstance(data, list) else 0
     logger.info(f"Query returned {record_count} records.")
     return { "record_count": record_count, "elapsed_seconds": elapsed_seconds }
+
+def fabric_rti_run_query_and_get_results(query: str, query_language: str = None) -> Dict[str, Any]:
+    """
+    Runs a KQL or T-SQL against the Fabric RTI database and returns the results.
+    Also returns the elapsed time for the query execution.
+    
+    :param query: The query string to execute
+    :param query_language: Optional, specify 'sql' or 'kql'. If None, it will be auto-detected. A '--' in the first line indicates 'sql'.
+    :return: Dictionary with the results and elapsed time in seconds
+    
+    Example:
+        >>> result = run_query_and_get_results("SELECT TOP 10 * FROM MyTable", "sql")
+        >>> result
+        {'results': [...], 'elapsed_seconds': 1.23}
+    """
+
+
+    result = _run_query(query, query_language)
+    (data, elapsed_seconds) = result
+    record_count = len(data) if data and isinstance(data, list) else 0
+    logger.info(f"Query returned {record_count} records.")
+    return { "results": data, "elapsed_seconds": elapsed_seconds }
+
+def fabric_rti_get_materialized_view_schema(materialized_view_name: str) -> Dict[str, Any]:
+    """
+    Gets the schema of a materialized view in the Fabric RTI database.
+    
+    :param materialized_view_name: The name of the materialized view
+    :return: Dictionary with column name and it's type in results and elapsed time in seconds
+    
+    Example:
+        >>> result = run_query_and_get_results("SELECT TOP 10 * FROM MyTable", "sql")
+        >>> result
+        {'results': [...], 'elapsed_seconds': 1.23}
+    """
+    mv_schema_query = f"""
+.show materialized-view {materialized_view_name} schema as json 
+| project mv_schema = todynamic(Schema).OrderedColumns
+| mv-expand mv_schema
+| project ColumnName = tostring(mv_schema.Name), ColumnType = tostring(mv_schema.Type)
+| order by ColumnName asc 
+"""
+
+    result = _run_query(mv_schema_query, "kql")
+    (data, elapsed_seconds) = result
+    record_count = len(data) if data and isinstance(data, list) else 0
+    logger.info(f"Query returned {record_count} columns.")
+    return { "results": data, "elapsed_seconds": elapsed_seconds }
