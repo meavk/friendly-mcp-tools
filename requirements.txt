@@ -1,2 +1,3 @@
 FastMCP
 azure-kusto-data
+python-dotenv

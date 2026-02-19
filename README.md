@@ -30,6 +30,13 @@ A collection of tools to interact with Microsoft Fabric RTI databases.
     # Azure Kusto/Fabric Configuration
     CLUSTER_URL=<Your_Fabric_RTI_Cluster_URL>
     DATABASE_NAME=<Your_Fabric_RTI_Database_Name>
+    
+    # Service feature flags (set to "true" or "false")
+    # All services are disabled by default for safety
+    ENABLE_DATA_TOOLS=false
+    ENABLE_FABRIC_RTI_TOOLS=false
+    ENABLE_GIT_CLI_TOOLS=false
+    ENABLE_INSTRUCTION_TOOLS=false
     ```
 5. Login to Azure using the Azure CLI and select the appropriate account and subscription:
 
