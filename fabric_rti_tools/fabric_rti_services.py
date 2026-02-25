@@ -90,24 +90,21 @@ def fabric_rti_run_query_and_get_results(query: str, query_language: str = None)
     logger.info(f"Query returned {record_count} records.")
     return { "results": data, "elapsed_seconds": elapsed_seconds }
 
-def fabric_rti_get_materialized_view_schema(materialized_view_name: str) -> Dict[str, Any]:
+def fabric_rti_get_schema(kql_query_or_object: str) -> Dict[str, Any]:
     """
-    Gets the schema of a materialized view in the Fabric RTI database.
+    Gets the schema of a table, materialized view, or KQL query result.
     
-    :param materialized_view_name: The name of the materialized view
-    :return: Dictionary with column name and it's type in results and elapsed time in seconds
+    :param kql_query_or_object: The KQL query or object to get the schema for
+    :return: Dictionary with column name, ordinal, data type and ColumnType in results and elapsed time in seconds.
     
     Example:
-        >>> result = run_query_and_get_results("SELECT TOP 10 * FROM MyTable", "sql")
+        >>> result = fabric_rti_get_schema("MyMaterializedView")
         >>> result
         {'results': [...], 'elapsed_seconds': 1.23}
     """
     mv_schema_query = f"""
-.show materialized-view {materialized_view_name} schema as json 
-| project mv_schema = todynamic(Schema).OrderedColumns
-| mv-expand mv_schema
-| project ColumnName = tostring(mv_schema.Name), ColumnType = tostring(mv_schema.Type)
-| order by ColumnName asc 
+{kql_query_or_object}
+| getschema
 """
 
     result = _run_query(mv_schema_query, "kql")

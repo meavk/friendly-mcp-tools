@@ -43,7 +43,7 @@ def register_tools(mcp: FastMCP) -> None:
         )
         
         mcp.add_tool(
-            fabric_rti_services.fabric_rti_get_materialized_view_schema,
+            fabric_rti_services.fabric_rti_get_schema,
             annotations=ToolAnnotations(readOnlyHint=True, destructiveHint=False),
         )
     
