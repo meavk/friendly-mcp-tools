@@ -471,3 +471,237 @@ def git_pr_diff(
         logger.error(f"Failed to retrieve diff for pull request '{pr_identifier or 'current branch'}': {result['error']}")
     
     return result
+
+
+def git_log(
+    repo_path: str = ".",
+    max_count: Optional[int] = None,
+    skip: Optional[int] = None,
+    since: Optional[str] = None,
+    until: Optional[str] = None,
+    author: Optional[str] = None,
+    committer: Optional[str] = None,
+    grep: Optional[str] = None,
+    all_refs: bool = False,
+    branches: Optional[str] = None,
+    tags: Optional[str] = None,
+    remotes: Optional[str] = None,
+    first_parent: bool = False,
+    no_merges: bool = False,
+    merges: bool = False,
+    reverse: bool = False,
+    date_order: bool = False,
+    author_date_order: bool = False,
+    topo_order: bool = False,
+    oneline: bool = False,
+    format: Optional[str] = None,
+    pretty: Optional[str] = None,
+    abbrev_commit: bool = False,
+    graph: bool = False,
+    decorate: Optional[str] = None,
+    stat: bool = False,
+    patch: bool = False,
+    name_only: bool = False,
+    name_status: bool = False,
+    follow: bool = False,
+    revision_range: Optional[str] = None,
+    paths: Optional[list[str]] = None
+) -> dict:
+    """
+    Show commit logs using git log command.
+    
+    Supported flags and their usage:
+    
+    :param repo_path: Path to the git repository (default: current directory)
+    :param max_count: Limit the number of commits to output (e.g., 10)
+    :param skip: Skip number commits before starting to show the commit output
+    :param since: Show commits more recent than a specific date (e.g., "2 weeks ago", "2024-01-01")
+    :param until: Show commits older than a specific date (e.g., "2024-12-31")
+    :param author: Limit commits to those with author matching the pattern
+    :param committer: Limit commits to those with committer matching the pattern
+    :param grep: Limit commits with log message matching the pattern
+    :param all_refs: Pretend as if all refs in refs/ are listed on command line (default: False)
+    :param branches: Pretend as if all refs in refs/heads are listed. Optional pattern to filter (e.g., "feature*")
+    :param tags: Pretend as if all refs in refs/tags are listed. Optional pattern to filter (e.g., "v1.*")
+    :param remotes: Pretend as if all refs in refs/remotes are listed. Optional pattern to filter (e.g., "origin/*")
+    :param first_parent: Follow only the first parent commit upon seeing a merge (default: False)
+    :param no_merges: Do not print commits with more than one parent (default: False)
+    :param merges: Print only merge commits (default: False)
+    :param reverse: Output commits in reverse order (default: False)
+    :param date_order: Show commits in commit timestamp order (default: False)
+    :param author_date_order: Show commits in author timestamp order (default: False)
+    :param topo_order: Show commits in topological order (default: False)
+    :param oneline: Shorthand for --pretty=oneline --abbrev-commit (default: False)
+    :param format: Pretty-print the contents using custom format string (e.g., "%h - %an, %ar : %s")
+    :param pretty: Pretty-print format - one of: oneline, short, medium, full, fuller, reference, email, raw
+    :param abbrev_commit: Show abbreviated commit object name (default: False)
+    :param graph: Draw a text-based graphical representation of commit history (default: False)
+    :param decorate: Print out ref names of commits - one of: short, full, auto, no
+    :param stat: Generate a diffstat (default: False)
+    :param patch: Generate patch/diff output (default: False)
+    :param name_only: Show only names of changed files (default: False)
+    :param name_status: Show only names and status of changed files (default: False)
+    :param follow: Continue listing history of a file beyond renames (works only for single file)
+    :param revision_range: Show only commits in the specified revision range (e.g., "main..feature", "HEAD~5..HEAD")
+    :param paths: Show only commits that are enough to explain how files matching paths came to be
+    :return: Dictionary with success status, output, error, and return code
+    
+    Examples:
+        # Show last 10 commits:
+        git_log(repo_path="/path/to/repo", max_count=10)
+        
+        # Show commits from last 2 weeks:
+        git_log(repo_path="/path/to/repo", since="2 weeks ago")
+        
+        # Show commits by specific author with graph:
+        git_log(repo_path="/path/to/repo", author="John Doe", graph=True, oneline=True)
+        
+        # Show commits in a range:
+        git_log(repo_path="/path/to/repo", revision_range="main..feature-branch")
+        
+        # Show commits that changed specific file:
+        git_log(repo_path="/path/to/repo", follow=True, paths=["src/main.py"])
+        
+        # Show commits with custom format:
+        git_log(repo_path="/path/to/repo", format="%h - %an, %ar : %s", max_count=20)
+        
+        # Show all branches with graph:
+        git_log(repo_path="/path/to/repo", all_refs=True, graph=True, oneline=True, max_count=50)
+        
+        # Show commits with stats:
+        git_log(repo_path="/path/to/repo", stat=True, max_count=5)
+        
+        # Search commits by message:
+        git_log(repo_path="/path/to/repo", grep="fix bug", oneline=True)
+    """
+    logger.info(f"Showing commit logs in {repo_path}")
+    
+    # Build the git log command
+    command = ["git", "log"]
+    
+    # Add limit/skip options
+    if max_count is not None:
+        command.extend(["-n", str(max_count)])
+    
+    if skip is not None:
+        command.extend(["--skip", str(skip)])
+    
+    # Add date filters
+    if since:
+        command.extend(["--since", since])
+    
+    if until:
+        command.extend(["--until", until])
+    
+    # Add author/committer filters
+    if author:
+        command.extend(["--author", author])
+    
+    if committer:
+        command.extend(["--committer", committer])
+    
+    # Add message filter
+    if grep:
+        command.extend(["--grep", grep])
+    
+    # Add ref selection options
+    if all_refs:
+        command.append("--all")
+    
+    if branches is not None:
+        if branches:
+            command.extend(["--branches", branches])
+        else:
+            command.append("--branches")
+    
+    if tags is not None:
+        if tags:
+            command.extend(["--tags", tags])
+        else:
+            command.append("--tags")
+    
+    if remotes is not None:
+        if remotes:
+            command.extend(["--remotes", remotes])
+        else:
+            command.append("--remotes")
+    
+    # Add merge options
+    if first_parent:
+        command.append("--first-parent")
+    
+    if no_merges:
+        command.append("--no-merges")
+    
+    if merges:
+        command.append("--merges")
+    
+    # Add ordering options
+    if reverse:
+        command.append("--reverse")
+    
+    if date_order:
+        command.append("--date-order")
+    
+    if author_date_order:
+        command.append("--author-date-order")
+    
+    if topo_order:
+        command.append("--topo-order")
+    
+    # Add formatting options
+    if oneline:
+        command.append("--oneline")
+    
+    if format:
+        command.extend(["--format", format])
+    
+    if pretty:
+        command.extend(["--pretty", pretty])
+    
+    if abbrev_commit:
+        command.append("--abbrev-commit")
+    
+    if graph:
+        command.append("--graph")
+    
+    if decorate is not None:
+        if decorate:
+            command.extend(["--decorate", decorate])
+        else:
+            command.append("--decorate")
+    
+    # Add diff output options
+    if stat:
+        command.append("--stat")
+    
+    if patch:
+        command.append("--patch")
+    
+    if name_only:
+        command.append("--name-only")
+    
+    if name_status:
+        command.append("--name-status")
+    
+    # Add follow option
+    if follow:
+        command.append("--follow")
+    
+    # Add revision range if specified
+    if revision_range:
+        command.append(revision_range)
+    
+    # Add path filters if specified
+    if paths:
+        command.append("--")
+        command.extend(paths)
+    
+    result = _run_command(command, cwd=repo_path)
+    
+    if result["success"]:
+        logger.info(f"Successfully retrieved commit logs")
+    else:
+        logger.error(f"Failed to retrieve commit logs: {result['error']}")
+    
+    return result

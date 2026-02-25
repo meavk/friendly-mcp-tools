@@ -74,3 +74,8 @@ def register_tools(mcp: FastMCP) -> None:
             git_cli_services.git_pr_diff,
             annotations=ToolAnnotations(readOnlyHint=True, destructiveHint=False),
         )
+        
+        mcp.add_tool(
+            git_cli_services.git_log,
+            annotations=ToolAnnotations(readOnlyHint=True, destructiveHint=False),
+        )
