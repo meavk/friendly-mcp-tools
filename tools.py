@@ -9,6 +9,10 @@ def initialize_tools() -> None:
         from fabric_rti_tools import fabric_rti_services
         fabric_rti_services.run_warmup_query()
 
+    if config.ENABLE_POSTGRESQL_READ_TOOLS or config.ENABLE_POSTGRESQL_WRITE_TOOLS:
+        from postgresql_tools import postgresql_services
+        postgresql_services.run_warmup_query()
+
 
 def register_tools(mcp: FastMCP) -> None:
     """Register tools based on enabled services"""
@@ -79,3 +83,18 @@ def register_tools(mcp: FastMCP) -> None:
             git_cli_services.git_log,
             annotations=ToolAnnotations(readOnlyHint=True, destructiveHint=False),
         )
+
+    if config.ENABLE_POSTGRESQL_READ_TOOLS or config.ENABLE_POSTGRESQL_WRITE_TOOLS:
+        from postgresql_tools import postgresql_services
+
+        if config.ENABLE_POSTGRESQL_READ_TOOLS:
+            mcp.add_tool(
+                postgresql_services.postgresql_read_query,
+                annotations=ToolAnnotations(readOnlyHint=True, destructiveHint=False),
+            )
+
+        if config.ENABLE_POSTGRESQL_WRITE_TOOLS:
+            mcp.add_tool(
+                postgresql_services.postgresql_write_query,
+                annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=True),
+            )

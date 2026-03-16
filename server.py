@@ -18,6 +18,10 @@ if __name__ == "__main__":
 		enabled_services.append("git_cli_tools")
 	if config.ENABLE_INSTRUCTION_TOOLS:
 		enabled_services.append("instruction_tools")
+	if config.ENABLE_POSTGRESQL_READ_TOOLS:
+		enabled_services.append("postgresql_read_tools")
+	if config.ENABLE_POSTGRESQL_WRITE_TOOLS:
+		enabled_services.append("postgresql_write_tools")
 	
 	print(f"Starting {config.SERVER_NAME}...")
 	print(f"Enabled services: {', '.join(enabled_services) if enabled_services else 'None'}")

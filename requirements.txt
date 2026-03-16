@@ -1,3 +1,5 @@
 FastMCP
 azure-kusto-data
 python-dotenv
+psycopg[binary]
+psycopg-pool
